@@ -16,7 +16,7 @@ namespace {
     void init_common_controls() {
         INITCOMMONCONTROLSEX icc = INITCOMMONCONTROLSEX();
         icc.dwSize = sizeof icc;
-        icc.dwICC = ICC_STANDARD_CLASSES;
+        icc.dwICC = ICC_WIN95_CLASSES;
         InitCommonControlsEx(&icc);
     }
 }

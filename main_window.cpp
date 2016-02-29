@@ -15,7 +15,8 @@ namespace {
     const int control_margin = 10;
 
     enum idc {
-        idc_disks_refresh
+        idc_disks_refresh,
+        idc_disks_list
     };
 
     struct window_data {
@@ -57,16 +58,40 @@ namespace {
         }
 
         {
-            // If SetWindowLongPtr succeeds, it returns the previous value of
-            // GWLP_USERDATA, which is 0, which is what SetWindowLongPtr also
-            // uses to indicate failure.
-            DWORD e;
-            if (!SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(wd.get())) && (e = GetLastError())) {
-                explain(L"SetWindowLongPtr failed", e);
-                return FALSE;
+            //RECT rcClient;
+            //GetClientRect(hWnd, &rcClient);
+
+            if (HWND l = CreateWindow(WC_LISTVIEW, L"",
+                WS_CHILD | WS_VISIBLE | LVS_REPORT,
+                100, 100, 1000, 100,
+                hWnd, reinterpret_cast<HMENU>(idc_disks_list),
+                nullptr, nullptr)
+            ) {
+                LVCOLUMNW c;
+                c.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+
+                c.iSubItem = 0;
+                c.pszText = const_cast<LPWSTR>(L"Model");
+                c.cx = 100;
+                ListView_InsertColumn(l, 0, &c);
+
+                c.iSubItem = 1;
+                c.pszText = const_cast<LPWSTR>(L"Size");
+                c.cx = 100;
+                ListView_InsertColumn(l, 1, &c);
+
+                c.iSubItem = 2;
+                c.pszText = const_cast<LPWSTR>(L"Serial");
+                c.cx = 100;
+                ListView_InsertColumn(l, 2, &c);
             }
+        }
+
+        {
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(wd.get()));
             wd.release();
         }
+
         return TRUE;
     }
 
@@ -81,6 +106,13 @@ namespace {
         return 0;
     }
 
+    void refresh_disks(HWND hWnd, window_data* wd) {
+        wd->disks.for_each_disk([](const disk& disk) {
+            explain(disk.size.c_str(), 0);
+            //
+        });
+    }
+
     void on_command(HWND hWnd, WORD id, HWND /*hCtl*/, UINT codeNotify) {
         window_data* wd = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
@@ -88,7 +120,7 @@ namespace {
         case idc_disks_refresh:
             switch (codeNotify) {
             case BN_CLICKED:
-                wd->disks.refresh();
+                refresh_disks(hWnd, wd);
                 return;
             }
         }
