@@ -12,17 +12,15 @@
 
 namespace {
     const wchar_t application_mutex[] = L"{155421ec-c63a-40cc-a2e6-11694133f30b}";
+}
 
-    void init_common_controls() {
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int nCmdShow) {
+    {
         INITCOMMONCONTROLSEX icc = INITCOMMONCONTROLSEX();
         icc.dwSize = sizeof icc;
         icc.dwICC = ICC_WIN95_CLASSES;
         InitCommonControlsEx(&icc);
     }
-}
-
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int nCmdShow) {
-    init_common_controls();
 
     prev_instance_mutex m(application_mutex);
     if (m.error()) {
