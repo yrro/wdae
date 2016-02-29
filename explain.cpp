@@ -22,8 +22,12 @@ std::wstring wstrerror(DWORD error) {
     return errmsg.get();
 }
 
-void explain(const wchar_t* msg, DWORD e) {
+void explain(const wchar_t* msg, DWORD code) {
     std::wostringstream ss;
-    ss << msg << ".\n\n" << e << ": " << wstrerror(e);
+    ss << msg << ".\n\n" << code << ": " << wstrerror(code);
     MessageBoxW(0, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
+}
+
+void explain(const windows_error& e) {
+    explain(e.msg().c_str(), e.code());
 }

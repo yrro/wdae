@@ -9,8 +9,8 @@ class prev_instance_mutex {
     DWORD e;
 
 public:
-    prev_instance_mutex(const wchar_t* mutex_name)
-        :m(nullptr, CloseHandle)
+    prev_instance_mutex(const wchar_t* mutex_name):
+        m(nullptr, CloseHandle)
     {
         m.reset(CreateMutexW(nullptr, FALSE, mutex_name));
         e = GetLastError();
