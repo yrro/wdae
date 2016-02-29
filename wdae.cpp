@@ -23,28 +23,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
     }
 
     std::experimental::optional<prev_instance_mutex> m;
-    {
-        try {
-            prev_instance_mutex temp(application_mutex);
-            m = std::move(temp);
-        } catch (const windows_error& e) {
-            explain(e);
-            return 0;
-        }
+    try {
+        m = std::move(prev_instance_mutex(application_mutex));
+    } catch (const windows_error& e) {
+        explain(e);
+        return 0;
     }
     if (m->prev_instance_exists()) {
         main_window_activate_prev_instance();
     }
 
     std::experimental::optional<com_manager> c;
-    {
-        try {
-            com_manager temp;
-            c = std::move(temp);
-        } catch (const windows_error& e) {
-            explain(e);
-            return 0;
-        }
+    try {
+        c = std::move(com_manager());
+    } catch (const windows_error& e) {
+        explain(e);
+        return 0;
     }
 
     main_window_register(hInstance);
