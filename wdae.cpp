@@ -33,16 +33,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
     }
 
     com_manager c;
-    if (c.error()) {
-        explain(L"CoInitializeEx failed", *(c.error()));
-        return 0;
-    }
+    {
+        if (c.error()) {
+            explain(L"CoInitializeEx failed", *(c.error()));
+            return 0;
+        }
 
-    HRESULT hr;
-    hr = CoInitializeSecurity(nullptr, -1, nullptr, nullptr, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE, nullptr);
-    if (FAILED(hr)) {
-        explain(L"CoInitializeSecurity failed", hr);
-        return 0;
+        HRESULT hr;
+        hr = CoInitializeSecurity(nullptr, -1, nullptr, nullptr, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE, nullptr);
+        if (FAILED(hr)) {
+            explain(L"CoInitializeSecurity failed", hr);
+            return 0;
+        }
     }
 
     main_window_register(hInstance);
