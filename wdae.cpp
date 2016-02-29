@@ -22,13 +22,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
         InitCommonControlsEx(&icc);
     }
 
-    prev_instance_mutex m(application_mutex);
-    if (m.error()) {
-        explain(L"CreateMutex failed", *(m.error()));
-        return 0;
-    } else if (m.prev_instance_exists()) {
+    std::experimental::optional<prev_instance_mutex> m;
+    {
+        try {
+            prev_instance_mutex temp(application_mutex);
+            m = std::move(temp);
+        } catch (const windows_error& e) {
+            explain(e);
+            return 0;
+        }
+    }
+    if (m->prev_instance_exists()) {
         main_window_activate_prev_instance();
-        return 0;
     }
 
     std::experimental::optional<com_manager> c;
