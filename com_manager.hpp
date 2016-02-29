@@ -25,6 +25,8 @@ public:
                 throw windows_error(L"CoInitializeSecurity", hr);
             }
         }
+
+        initialized = true;
     }
 
     ~com_manager() throw() {
