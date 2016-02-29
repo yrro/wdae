@@ -1,3 +1,4 @@
+#include <experimental/optional>
 #include <memory>
 
 #include <windows.h>
@@ -32,17 +33,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
         return 0;
     }
 
-    com_manager c;
+    std::experimental::optional<com_manager> c;
     {
-        if (c.error()) {
-            explain(L"CoInitializeEx failed", *(c.error()));
-            return 0;
-        }
-
-        HRESULT hr;
-        hr = CoInitializeSecurity(nullptr, -1, nullptr, nullptr, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE, nullptr);
-        if (FAILED(hr)) {
-            explain(L"CoInitializeSecurity failed", hr);
+        try {
+            com_manager temp;
+            c = std::move(temp);
+        } catch (const windows_error& e) {
+            explain(e);
             return 0;
         }
     }

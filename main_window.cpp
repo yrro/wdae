@@ -33,7 +33,7 @@ namespace {
         std::unique_ptr<window_data> wd;
         try {
             auto temp = std::make_unique<window_data>();
-            std::swap(wd, temp);
+            wd = std::move(temp);
         } catch (const windows_error& e) {
             explain(e);
             return FALSE;
