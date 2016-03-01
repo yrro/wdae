@@ -60,29 +60,29 @@ disk_lister::disk_lister() {
 void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
     IEnumWbemClassObjectPtr enu;
     {
-        IEnumWbemClassObject* enu_raw;
+        IEnumWbemClassObject* p;
         HRESULT hr = svc->ExecQuery(
             _bstr_t(L"WQL"),
             _bstr_t(L"SELECT * FROM Win32_DiskDrive"),
             WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
             nullptr,
-            &enu_raw);
+            &p);
         if (FAILED(hr)) {
             explain(L"ExecQuery failed", hr);
             return;
         }
-        enu = decltype(enu)(enu_raw, false);
+        enu = decltype(enu)(p, false);
     }
 
     for (;;) {
         IWbemClassObjectPtr obj;
         {
-            IWbemClassObject* obj_raw;
+            IWbemClassObject* p;
             ULONG uReturn = 0;
-            HRESULT hr = enu->Next(WBEM_INFINITE, 1, &obj_raw, &uReturn);
+            HRESULT hr = enu->Next(WBEM_INFINITE, 1, &p, &uReturn);
             if (FAILED(hr) || uReturn == 0)
                 break;
-            obj = decltype(obj)(obj_raw, false);
+            obj = decltype(obj)(p, false);
         }
 
         disk d;
