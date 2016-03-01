@@ -35,7 +35,7 @@ namespace {
         try {
             auto temp = std::make_unique<window_data>();
             wd = std::move(temp);
-        } catch (const windows_error& e) {
+        } catch (const _com_error& e) {
             explain(e);
             return FALSE;
         }
@@ -107,10 +107,13 @@ namespace {
     }
 
     void refresh_disks(HWND hWnd, window_data* wd) {
-        wd->disks.for_each_disk([](const disk& disk) {
-            explain(disk.size.c_str(), 0);
-            //
-        });
+        try {
+            wd->disks.for_each_disk([](const disk& disk) {
+                explain(disk.size.c_str(), 0);
+            });
+        } catch (const _com_error& e) {
+            explain(e);
+        }
     }
 
     void on_command(HWND hWnd, WORD id, HWND /*hCtl*/, UINT codeNotify) {

@@ -31,3 +31,7 @@ void explain(const wchar_t* msg, DWORD code) {
 void explain(const windows_error& e) {
     explain(e.msg().c_str(), e.code());
 }
+
+void explain(const _com_error& e) {
+    explain(e.ErrorMessage(), e.Error());
+}

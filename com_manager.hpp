@@ -9,21 +9,16 @@ class com_manager {
 
 public:
     com_manager() {
-        {
-            HRESULT r = CoInitializeEx(0, COINIT_MULTITHREADED);
-            if (FAILED(r)) {
-                throw windows_error(L"CoInitializeEx", r);
-            }
-        }
+        _com_util::CheckError(CoInitializeEx(0, COINIT_MULTITHREADED));
 
-        {
-            HRESULT hr = CoInitializeSecurity(nullptr, -1, nullptr, nullptr,
+        try {
+            _com_util::CheckError(CoInitializeSecurity(nullptr, -1, nullptr, nullptr,
                 RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE,
-                nullptr, EOAC_NONE, nullptr);
-            if (FAILED(hr)) {
-                CoUninitialize();
-                throw windows_error(L"CoInitializeSecurity", hr);
-            }
+                nullptr, EOAC_NONE, nullptr
+            ));
+        } catch (const _com_error& e) {
+            CoUninitialize();
+            throw;
         }
 
         initialized = true;

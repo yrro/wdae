@@ -36,7 +36,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
     std::experimental::optional<com_manager> c;
     try {
         c = std::move(com_manager());
-    } catch (const windows_error& e) {
+    } catch (const _com_error& e) {
         explain(e);
         return 0;
     }

@@ -5,6 +5,8 @@
 
 #include <windows.h>
 
+#include <comdef.h>
+
 class windows_error: public std::runtime_error {
     std::wstring _msg;
     DWORD _code;
@@ -33,3 +35,4 @@ std::wstring wstrerror(DWORD error);
 
 void explain(const wchar_t* msg, DWORD e = GetLastError());
 void explain(const windows_error& e);
+void explain(const _com_error& e);
