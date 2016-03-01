@@ -1,5 +1,6 @@
 #include "disks.hpp"
 
+#include "com_manager.hpp"
 #include "explain.hpp"
 
 namespace {
@@ -7,7 +8,7 @@ namespace {
         _variant_t v;
         {
             VARIANT t;
-            _com_util::CheckError(o->Get(name, 0, &t, nullptr, nullptr));
+            com_manager::CheckError(o->Get(name, 0, &t, nullptr, nullptr));
             v = _variant_t(t, false);
         }
         return std::wstring(_bstr_t(v));
@@ -17,9 +18,9 @@ namespace {
 disk_lister::disk_lister() {
     HRESULT hr;
 
-    _com_util::CheckError(loc.CreateInstance(CLSID_WbemLocator));
+    com_manager::CheckError(loc.CreateInstance(CLSID_WbemLocator));
 
-    _com_util::CheckError(hr = loc->ConnectServer(
+    com_manager::CheckError(hr = loc->ConnectServer(
         _bstr_t(L"ROOT\\CIMV2"),
         nullptr, nullptr,
         nullptr,
@@ -29,7 +30,7 @@ disk_lister::disk_lister() {
         &svc
     ));
 
-    _com_util::CheckError(CoSetProxyBlanket(
+    com_manager::CheckError(CoSetProxyBlanket(
        svc,
        RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE,
        nullptr,
@@ -42,7 +43,7 @@ disk_lister::disk_lister() {
 
 void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
     IEnumWbemClassObjectPtr enu;
-    _com_util::CheckError(svc->ExecQuery(
+    com_manager::CheckError(svc->ExecQuery(
         _bstr_t(L"WQL"),
         _bstr_t(L"SELECT * FROM Win32_DiskDrive"),
         WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
@@ -54,7 +55,7 @@ void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
         IWbemClassObjectPtr obj;
         {
             ULONG uReturn = 0;
-            _com_util::CheckError(enu->Next(WBEM_INFINITE, 1, &obj, &uReturn));
+            com_manager::CheckError(enu->Next(WBEM_INFINITE, 1, &obj, &uReturn));
             if (uReturn == 0)
                 break;
         }

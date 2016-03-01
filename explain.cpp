@@ -33,5 +33,5 @@ void explain(const windows_error& e) {
 }
 
 void explain(const _com_error& e) {
-    explain(e.ErrorMessage(), e.Error());
+    MessageBoxW(0, e.ErrorMessage(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
 }
