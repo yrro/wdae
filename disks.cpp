@@ -10,9 +10,9 @@ namespace {
             HRESULT hr = const_cast<IWbemClassObject*>(o)->Get(name, 0, &t, nullptr, nullptr);
             if (FAILED(hr))
                 return L"";
-            v.Attach(t);
+            v = _variant_t(t, false);
         }
-        return std::wstring(static_cast<_bstr_t>(v));
+        return std::wstring(_bstr_t(v));
     }
 }
 
