@@ -108,11 +108,11 @@ namespace {
 
     void refresh_disks(HWND hWnd, window_data* wd) {
         try {
-            wd->disks.for_each_disk([](const disk& disk) {
-                explain(disk.size.c_str(), 0);
+            wd->disks.for_each_disk([=](const disk& disk) {
+                explain(disk.size.c_str(), 0, hWnd);
             });
         } catch (const _com_error& e) {
-            explain(e);
+            explain(e, hWnd);
         }
     }
 

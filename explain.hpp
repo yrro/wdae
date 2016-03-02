@@ -33,6 +33,6 @@ public:
 
 std::wstring wstrerror(DWORD error);
 
-void explain(const wchar_t* msg, DWORD e = GetLastError());
+void explain(const wchar_t* msg, DWORD e = GetLastError(), HWND hWnd = nullptr);
 void explain(const windows_error& e);
-void explain(const _com_error& e);
+void explain(const _com_error& e, HWND hWnd = nullptr);

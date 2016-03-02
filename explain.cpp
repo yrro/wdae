@@ -24,18 +24,18 @@ std::wstring wstrerror(DWORD error) {
     return errmsg.get();
 }
 
-void explain(const wchar_t* msg, DWORD code) {
+void explain(const wchar_t* msg, DWORD code, HWND hWnd) {
     std::wostringstream ss;
     ss << msg << ".\n\n" << code << ": " << wstrerror(code);
-    MessageBoxW(0, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
+    MessageBoxW(hWnd, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
 }
 
 void explain(const windows_error& e) {
     explain(e.msg().c_str(), e.code());
 }
 
-void explain(const _com_error& e) {
+void explain(const _com_error& e, HWND hWnd) {
     std::wostringstream ss;
     ss << "0x" << std::hex << e.Error() << '\n' << e.ErrorMessage();
-    MessageBoxW(0, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
+    MessageBoxW(hWnd, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
 }
