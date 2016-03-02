@@ -4,14 +4,10 @@
 #include "explain.hpp"
 
 namespace {
-    std::wstring prop_string(IWbemClassObject* o, LPCWSTR name) {
-        _variant_t v;
-        {
-            VARIANT t;
-            com_manager::CheckError(o->Get(name, 0, &t, nullptr, nullptr));
-            v = _variant_t(t, false);
-        }
-        return std::wstring(_bstr_t(v));
+    _variant_t prop_get(IWbemClassObject* o, LPCWSTR name) {
+        VARIANT t;
+        com_manager::CheckError(o->Get(name, 0, &t, nullptr, nullptr));
+        return _variant_t(t, false);
     }
 }
 
@@ -61,11 +57,11 @@ void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
         }
 
         disk d;
-        d.device_id = prop_string(obj, L"DeviceID");
-        d.model = prop_string(obj, L"Model");
-        d.size = prop_string(obj, L"Size");
-        d.serial = prop_string(obj, L"SerialNumber");
-        d.pnp_device_id = prop_string(obj, L"PNPDeviceID");
+        d.device_id = _bstr_t(prop_get(obj, L"DeviceID"));
+        d.model = _bstr_t(prop_get(obj, L"Model"));
+        d.size = prop_get(obj, L"Size");
+        d.serial = _bstr_t(prop_get(obj, L"SerialNumber"));
+        d.pnp_device_id = _bstr_t(prop_get(obj, L"PNPDeviceID"));
         f(d);
     }
 }

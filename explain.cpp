@@ -36,6 +36,6 @@ void explain(const windows_error& e) {
 
 void explain(const _com_error& e, HWND hWnd) {
     std::wostringstream ss;
-    ss << "0x" << std::hex << e.Error() << '\n' << e.ErrorMessage();
+    ss << std::showbase << std::hex << e.Error() << '\n' << e.ErrorMessage();
     MessageBoxW(hWnd, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
 }

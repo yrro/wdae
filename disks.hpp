@@ -16,7 +16,7 @@ _COM_SMARTPTR_TYPEDEF(IWbemClassObject, IID_IWbemClassObject);
 struct disk {
     std::wstring device_id;
     std::wstring model;
-    std::wstring size;
+    std::uint64_t size;
     std::wstring serial;
     std::wstring pnp_device_id;
 };

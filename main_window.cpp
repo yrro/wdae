@@ -1,7 +1,9 @@
 #include "main_window.hpp"
 
+#include <iomanip>
 #include <cassert>
 #include <memory>
+#include <sstream>
 
 #include <windows.h>
 
@@ -19,11 +21,23 @@ namespace {
         idc_disks_list
     };
 
+    enum disk_listview_sub_item {
+        disk_listview_sub_device_id = 0,
+        disk_listview_sub_model,
+        disk_listview_sub_size10,
+        disk_listview_sub_size2,
+        disk_listview_sub_serial,
+        disk_listview_sub_pnp_device_id
+    };
+
     struct window_data {
         NONCLIENTMETRICS metrics;
         std::unique_ptr<HFONT__, decltype(&DeleteObject)> message_font;
 
         disk_lister disks;
+
+        HWND disk_refresh_button;
+        HWND disk_listview;
 
         window_data()
             :message_font(nullptr, DeleteObject)
@@ -47,43 +61,63 @@ namespace {
             wd->message_font.reset(CreateFontIndirect(&wd->metrics.lfMessageFont));
         }
 
-        if (HWND b = CreateWindow(WC_BUTTON, L"Refresh disks",
+        if (wd->disk_refresh_button = CreateWindow(WC_BUTTON, L"Refresh disks",
             WS_CHILD | WS_VISIBLE,
-            control_margin, control_margin, 200, 24,
+            control_margin, control_margin, 100, 100,
             hWnd, reinterpret_cast<HMENU>(idc_disks_refresh),
             nullptr, nullptr)
         ) {
-            SetWindowFont(b, wd->message_font.get(), true);
-            PostMessage(hWnd, WM_COMMAND, MAKELONG(idc_disks_refresh, BN_CLICKED), reinterpret_cast<LPARAM>(b));
+            SetWindowFont(wd->disk_refresh_button, wd->message_font.get(), true);
+            PostMessage(hWnd, WM_COMMAND, MAKELONG(idc_disks_refresh, BN_CLICKED), reinterpret_cast<LPARAM>(wd->disk_refresh_button));
         }
 
         {
-            //RECT rcClient;
-            //GetClientRect(hWnd, &rcClient);
-
-            if (HWND l = CreateWindow(WC_LISTVIEW, L"",
-                WS_CHILD | WS_VISIBLE | LVS_REPORT,
-                100, 100, 1000, 100,
+            if ((wd->disk_listview = CreateWindow(WC_LISTVIEW, L"",
+                WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SINGLESEL,
+                50, 300, 800, 500,
                 hWnd, reinterpret_cast<HMENU>(idc_disks_list),
                 nullptr, nullptr)
-            ) {
+            )) {
+                ListView_SetExtendedListViewStyle(wd->disk_listview, LVS_EX_FULLROWSELECT);
+
                 LVCOLUMNW c;
-                c.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+                c.mask = LVCF_FMT | LVCF_TEXT | LVCF_SUBITEM | LVCF_WIDTH;
 
-                c.iSubItem = 0;
+                c.iSubItem = disk_listview_sub_device_id;
+                c.fmt = LVCFMT_LEFT;
+                c.pszText = const_cast<LPWSTR>(L"Device ID");
+                c.cx = 130;
+                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+
+                c.iSubItem = disk_listview_sub_model;
+                c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Model");
-                c.cx = 100;
-                ListView_InsertColumn(l, 0, &c);
+                c.cx = 250;
+                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
-                c.iSubItem = 1;
-                c.pszText = const_cast<LPWSTR>(L"Size");
-                c.cx = 100;
-                ListView_InsertColumn(l, 1, &c);
+                c.iSubItem = disk_listview_sub_size10;
+                c.fmt = LVCFMT_RIGHT;
+                c.pszText = const_cast<LPWSTR>(L"Size (GB)");
+                c.cx = 80;
+                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
-                c.iSubItem = 2;
+                c.iSubItem = disk_listview_sub_size2;
+                c.fmt = LVCFMT_RIGHT;
+                c.pszText = const_cast<LPWSTR>(L"Size (GiB)");
+                c.cx = 80;
+                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+
+                c.iSubItem = disk_listview_sub_serial;
+                c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Serial");
-                c.cx = 100;
-                ListView_InsertColumn(l, 2, &c);
+                c.cx = 160;
+                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+
+                c.iSubItem = disk_listview_sub_pnp_device_id;
+                c.fmt = LVCFMT_LEFT;
+                c.pszText = const_cast<LPWSTR>(L"PNP Device ID");
+                c.cx = 160;
+                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
             }
         }
 
@@ -100,16 +134,44 @@ namespace {
         PostQuitMessage(0);
     }
 
-    LRESULT on_activate(HWND hWnd) {
+    void on_activate(HWND hWnd) {
         SetForegroundWindow(hWnd);
         ShowWindow(hWnd, SW_RESTORE);
-        return 0;
     }
 
     void refresh_disks(HWND hWnd, window_data* wd) {
         try {
-            wd->disks.for_each_disk([=](const disk& disk) {
-                explain(disk.size.c_str(), 0, hWnd);
+            LVITEMW item;
+            item.mask = LVIF_TEXT;
+            item.cchTextMax = 256;
+            item.iItem = 0;
+
+            ListView_DeleteAllItems(wd->disk_listview);
+
+            wd->disks.for_each_disk([&](const disk& disk) {
+                item.iSubItem = disk_listview_sub_device_id;
+                item.pszText = const_cast<wchar_t*>(disk.device_id.c_str());
+                ListView_InsertItem(wd->disk_listview, &item);
+
+                ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_model, const_cast<wchar_t*>(disk.model.c_str()));
+
+                {
+                    std::wostringstream ss;
+                    ss << std::fixed << std::setprecision(0) << disk.size / 1'000'000'000.;
+                    ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_size10, const_cast<wchar_t*>(ss.str().c_str()));
+                }
+
+                {
+                    std::wostringstream ss;
+                    ss << std::fixed << std::setprecision(2) << disk.size / (1024. * 1024. * 1024.);
+                    ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
+                }
+
+                ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
+
+                ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
+
+                ++item.iItem;
             });
         } catch (const _com_error& e) {
             explain(e, hWnd);
@@ -129,6 +191,23 @@ namespace {
         }
 
         assert(0); // unknown control
+    }
+
+    void on_size(HWND hWnd, UINT type, int width, int height) {
+        window_data* wd = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+        SIZE s;
+        if (Button_GetIdealSize(wd->disk_refresh_button, &s)) {
+            MoveWindow(wd->disk_refresh_button, control_margin, control_margin, s.cx, s.cy, false);
+        }
+
+        RECT r;
+        if (GetClientRect(wd->disk_refresh_button, &r)) {
+            POINT p = {0, r.bottom + control_margin};
+            if (MapWindowPoints(wd->disk_refresh_button, hWnd, &p, 1)) {
+                MoveWindow(wd->disk_listview, control_margin, p.y, width - 2 * control_margin, height - p.y - control_margin, false);
+            }
+        }
     }
 
     const wchar_t main_window_class[] = L"{d716e220-19d9-4e82-bd5d-2b85562636d1}";
@@ -178,12 +257,11 @@ LRESULT CALLBACK main_window_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
     switch (uMsg) {
     HANDLE_MSG(hWnd, WM_CREATE, on_create);
     HANDLE_MSG(hWnd, WM_DESTROY, on_destroy);
+    HANDLE_MSG(hWnd, WM_SIZE, on_size);
     HANDLE_MSG(hWnd, WM_COMMAND, on_command);
-    default:
-        if (uMsg == msg_activate) {
-            return on_activate(hWnd);
-        } else {
-            return DefWindowProc(hWnd, uMsg, wParam, lParam);
-        }
     }
+    if (uMsg == msg_activate) {
+        return on_activate(hWnd), 0;
+    }
+    return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
