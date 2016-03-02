@@ -4,6 +4,9 @@
 
 #include "explain.hpp"
 
+_COM_SMARTPTR_TYPEDEF(ISupportErrorInfo, IID_ISupportErrorInfo);
+_COM_SMARTPTR_TYPEDEF(IErrorInfo, IID_IErrorInfo);
+
 class com_manager {
     bool initialized;
 
@@ -50,13 +53,28 @@ public:
         return *this;
     }
 
-    // https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=816427
+    // Can't use _com_issue_error:
+    // <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=816427>
     inline static void CheckError(HRESULT hr) {
         if (FAILED(hr)) {
-            IErrorInfo* ei;
-            GetErrorInfo(0, &ei); // does't actaully work!
+            throw _com_error(hr);
+        }
+    }
+
+    // T must be a _com_ptr_t<_com_IIID_getter<Isomething, __Isomething_IID_getter>>
+    template<typename T>
+    inline static void CheckError(HRESULT hr, T i, GUID g) {
+        if (FAILED(hr)) {
+            IErrorInfoPtr ei;
+            {
+                ISupportErrorInfoPtr sei;
+                if (SUCCEEDED(i.QueryInterface(IID_ISupportErrorInfo, &sei))) {
+                    if (sei->InterfaceSupportsErrorInfo(g) == S_OK) {
+                        GetErrorInfo(0, &ei);
+                    }
+                }
+            }
             throw _com_error(hr, ei);
-            //_com_issue_error(hr);
         }
     }
 };
