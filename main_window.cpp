@@ -210,6 +210,10 @@ namespace {
         }
     }
 
+    void on_getminmaxinfo(HWND, MINMAXINFO* m) {
+        m->ptMinTrackSize = {640, 480};
+    }
+
     const wchar_t main_window_class[] = L"{d716e220-19d9-4e82-bd5d-2b85562636d1}";
 
     const UINT msg_activate = RegisterWindowMessageW(L"{a921a9de-f8b9-4755-acf8-fb1bcca54c07}");
@@ -257,8 +261,9 @@ LRESULT CALLBACK main_window_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
     switch (uMsg) {
     HANDLE_MSG(hWnd, WM_CREATE, on_create);
     HANDLE_MSG(hWnd, WM_DESTROY, on_destroy);
-    HANDLE_MSG(hWnd, WM_SIZE, on_size);
     HANDLE_MSG(hWnd, WM_COMMAND, on_command);
+    HANDLE_MSG(hWnd, WM_SIZE, on_size);
+    HANDLE_MSG(hWnd, WM_GETMINMAXINFO, on_getminmaxinfo);
     }
     if (uMsg == msg_activate) {
         return on_activate(hWnd), 0;
