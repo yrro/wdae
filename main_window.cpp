@@ -14,6 +14,8 @@
 #include "explain.hpp"
 
 namespace {
+    const int listview_max = 256;
+
     const int control_margin = 10;
 
     enum idc {
@@ -143,7 +145,7 @@ namespace {
         try {
             LVITEMW item;
             item.mask = LVIF_TEXT;
-            item.cchTextMax = 256;
+            item.cchTextMax = listview_max;
             item.iItem = 0;
 
             (void)ListView_DeleteAllItems(wd->disk_listview);
@@ -214,6 +216,15 @@ namespace {
         m->ptMinTrackSize = {640, 480};
     }
 
+    void on_disk_choose(HWND hWnd) {
+        window_data* wd = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+        int i = ListView_GetNextItem(wd->disk_listview, -1, LVNI_FOCUSED);
+        std::array<wchar_t, listview_max> a;
+        ListView_GetItemText(wd->disk_listview, i, 0, std::begin(a), a.size());
+        MessageBox(hWnd, std::begin(a), nullptr, 0);
+    }
+
     const wchar_t main_window_class[] = L"{d716e220-19d9-4e82-bd5d-2b85562636d1}";
 
     const UINT msg_activate = RegisterWindowMessageW(L"{a921a9de-f8b9-4755-acf8-fb1bcca54c07}");
@@ -264,6 +275,14 @@ LRESULT CALLBACK main_window_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
     HANDLE_MSG(hWnd, WM_COMMAND, on_command);
     HANDLE_MSG(hWnd, WM_SIZE, on_size);
     HANDLE_MSG(hWnd, WM_GETMINMAXINFO, on_getminmaxinfo);
+    case WM_NOTIFY:
+        switch (LOWORD(wParam)) {
+        case idc_disks_list:
+            switch (reinterpret_cast<NMHDR*>(lParam)->code) {
+            case NM_DBLCLK:
+                return on_disk_choose(hWnd), 0;
+            }
+        }
     }
     if (uMsg == msg_activate) {
         return on_activate(hWnd), 0;
