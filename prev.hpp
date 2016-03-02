@@ -5,31 +5,22 @@
 
 #include <windows.h>
 
-#include "explain.hpp"
-
 class prev_instance_mutex {
     std::unique_ptr<void, decltype(&CloseHandle)> m;
-    bool prev;
+    std::experimental::optional<bool> prev;
 
 public:
     prev_instance_mutex(const wchar_t* mutex_name):
-        m(nullptr, CloseHandle),
-        prev(false)
+        m(nullptr, CloseHandle)
     {
         m.reset(CreateMutexW(nullptr, FALSE, mutex_name));
-        DWORD e = GetLastError();
-        if (m) {
-            prev = (e == ERROR_ALREADY_EXISTS);
-        } else {
-            throw windows_error(L"CreateMutex", e);
+        if (!m) {
+            throw windows_error(L"CreateMutex", GetLastError());
         }
+        prev = (GetLastError() == ERROR_ALREADY_EXISTS);
     }
 
     std::experimental::optional<bool> prev_instance_exists() const {
-        if (!m) {
-            return std::experimental::nullopt;
-        } else {
-            return prev;
-        }
+        return prev;
     }
 };
