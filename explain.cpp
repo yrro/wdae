@@ -11,7 +11,9 @@ std::wstring wstrerror(DWORD error) {
             FORMAT_MESSAGE_FROM_SYSTEM
             | FORMAT_MESSAGE_ALLOCATE_BUFFER
             | FORMAT_MESSAGE_IGNORE_INSERTS,
-            0, error, 0, reinterpret_cast<wchar_t*>(&errmsg_p), 0, 0
+            nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            reinterpret_cast<wchar_t*>(&errmsg_p),
+            0, nullptr
         )) {
             std::wostringstream ss;
             ss << L"[FormatMessage failure: " << GetLastError() << ']';
