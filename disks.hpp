@@ -1,17 +1,12 @@
 #pragma once
 
 #include <functional>
-
-#include <memory>
+#include <string>
 
 #include <windows.h>
 
 #include <comdef.h>
-#include <comdefsp.h>
-#include <comip.h>
 #include <wbemcli.h>
-
-#include "explain.hpp"
 
 _COM_SMARTPTR_TYPEDEF(IWbemLocator, IID_IWbemLocator);
 _COM_SMARTPTR_TYPEDEF(IWbemServices, IID_IWbemServices);

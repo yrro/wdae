@@ -1,6 +1,7 @@
 #pragma once
 
 #include <experimental/optional>
+#include <memory>
 
 #include <windows.h>
 
