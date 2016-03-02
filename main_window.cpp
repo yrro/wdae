@@ -61,12 +61,12 @@ namespace {
             wd->message_font.reset(CreateFontIndirect(&wd->metrics.lfMessageFont));
         }
 
-        if (wd->disk_refresh_button = CreateWindow(WC_BUTTON, L"Refresh disks",
+        if ((wd->disk_refresh_button = CreateWindow(WC_BUTTON, L"Refresh disks",
             WS_CHILD | WS_VISIBLE,
             control_margin, control_margin, 100, 100,
             hWnd, reinterpret_cast<HMENU>(idc_disks_refresh),
             nullptr, nullptr)
-        ) {
+        )) {
             SetWindowFont(wd->disk_refresh_button, wd->message_font.get(), true);
             PostMessage(hWnd, WM_COMMAND, MAKELONG(idc_disks_refresh, BN_CLICKED), reinterpret_cast<LPARAM>(wd->disk_refresh_button));
         }
@@ -78,7 +78,7 @@ namespace {
                 hWnd, reinterpret_cast<HMENU>(idc_disks_list),
                 nullptr, nullptr)
             )) {
-                ListView_SetExtendedListViewStyle(wd->disk_listview, LVS_EX_FULLROWSELECT);
+                (void)ListView_SetExtendedListViewStyle(wd->disk_listview, LVS_EX_FULLROWSELECT);
 
                 LVCOLUMNW c;
                 c.mask = LVCF_FMT | LVCF_TEXT | LVCF_SUBITEM | LVCF_WIDTH;
@@ -87,37 +87,37 @@ namespace {
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Device ID");
                 c.cx = 130;
-                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
                 c.iSubItem = disk_listview_sub_model;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Model");
                 c.cx = 250;
-                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
                 c.iSubItem = disk_listview_sub_size10;
                 c.fmt = LVCFMT_RIGHT;
                 c.pszText = const_cast<LPWSTR>(L"Size (GB)");
                 c.cx = 80;
-                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
                 c.iSubItem = disk_listview_sub_size2;
                 c.fmt = LVCFMT_RIGHT;
                 c.pszText = const_cast<LPWSTR>(L"Size (GiB)");
                 c.cx = 80;
-                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
                 c.iSubItem = disk_listview_sub_serial;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Serial");
                 c.cx = 160;
-                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
                 c.iSubItem = disk_listview_sub_pnp_device_id;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"PNP Device ID");
                 c.cx = 160;
-                ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
             }
         }
 
@@ -146,12 +146,12 @@ namespace {
             item.cchTextMax = 256;
             item.iItem = 0;
 
-            ListView_DeleteAllItems(wd->disk_listview);
+            (void)ListView_DeleteAllItems(wd->disk_listview);
 
             wd->disks.for_each_disk([&](const disk& disk) {
                 item.iSubItem = disk_listview_sub_device_id;
                 item.pszText = const_cast<wchar_t*>(disk.device_id.c_str());
-                ListView_InsertItem(wd->disk_listview, &item);
+                (void)ListView_InsertItem(wd->disk_listview, &item);
 
                 ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_model, const_cast<wchar_t*>(disk.model.c_str()));
 
@@ -193,7 +193,7 @@ namespace {
         assert(0); // unknown control
     }
 
-    void on_size(HWND hWnd, UINT type, int width, int height) {
+    void on_size(HWND hWnd, UINT, int width, int height) {
         window_data* wd = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
         SIZE s;
