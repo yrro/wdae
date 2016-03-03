@@ -4,6 +4,7 @@
 #include <cassert>
 #include <memory>
 #include <sstream>
+#include <vector>
 
 #include <windows.h>
 
@@ -14,8 +15,6 @@
 #include "explain.hpp"
 
 namespace {
-    const int listview_max = 256;
-
     const int control_margin = 10;
 
     enum idc {
@@ -29,6 +28,7 @@ namespace {
         disk_listview_sub_size10,
         disk_listview_sub_size2,
         disk_listview_sub_serial,
+        disk_listview_sub_dacl,
         disk_listview_sub_pnp_device_id
     };
 
@@ -36,7 +36,8 @@ namespace {
         NONCLIENTMETRICS metrics;
         std::unique_ptr<HFONT__, decltype(&DeleteObject)> message_font;
 
-        disk_lister disks;
+        disk_lister lister;
+        std::vector<disk> disks;
 
         HWND disk_refresh_button;
         HWND disk_listview;
@@ -115,6 +116,12 @@ namespace {
                 c.cx = 160;
                 (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
+                c.iSubItem = disk_listview_sub_dacl;
+                c.fmt = LVCFMT_LEFT;
+                c.pszText = const_cast<LPWSTR>(L"DACL");
+                c.cx = 290;
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+
                 c.iSubItem = disk_listview_sub_pnp_device_id;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"PNP Device ID");
@@ -143,37 +150,40 @@ namespace {
 
     void refresh_disks(HWND hWnd, window_data* wd) {
         try {
-            LVITEMW item;
-            item.mask = LVIF_TEXT;
-            item.cchTextMax = listview_max;
-            item.iItem = 0;
-
             (void)ListView_DeleteAllItems(wd->disk_listview);
+            wd->disks.clear();
 
-            wd->disks.for_each_disk([&](const disk& disk) {
-                item.iSubItem = disk_listview_sub_device_id;
-                item.pszText = const_cast<wchar_t*>(disk.device_id.c_str());
-                (void)ListView_InsertItem(wd->disk_listview, &item);
+            wd->lister.for_each_disk([&](const disk& disk) {
+                {
+                    LVITEMW item;
+                    item.mask = LVIF_TEXT;
+                    item.iItem = wd->disks.size();
+                    item.iSubItem = disk_listview_sub_device_id;
+                    item.pszText = const_cast<wchar_t*>(disk.device_id.c_str());
+                    (void)ListView_InsertItem(wd->disk_listview, &item);
+                }
 
-                ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_model, const_cast<wchar_t*>(disk.model.c_str()));
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_model, const_cast<wchar_t*>(disk.model.c_str()));
 
                 {
                     std::wostringstream ss;
                     ss << std::fixed << std::setprecision(0) << disk.size / 1'000'000'000.;
-                    ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_size10, const_cast<wchar_t*>(ss.str().c_str()));
+                    ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size10, const_cast<wchar_t*>(ss.str().c_str()));
                 }
 
                 {
                     std::wostringstream ss;
                     ss << std::fixed << std::setprecision(2) << disk.size / (1024. * 1024. * 1024.);
-                    ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
+                    ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
                 }
 
-                ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
 
-                ListView_SetItemText(wd->disk_listview, item.iItem, disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_dacl, const_cast<wchar_t*>(disk.dacl.c_str()));
 
-                ++item.iItem;
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
+
+                wd->disks.emplace_back(disk);
             });
         } catch (const _com_error& e) {
             explain(e, hWnd);
@@ -220,9 +230,9 @@ namespace {
         window_data* wd = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
         int i = ListView_GetNextItem(wd->disk_listview, -1, LVNI_FOCUSED);
-        std::array<wchar_t, listview_max> a;
-        ListView_GetItemText(wd->disk_listview, i, 0, std::begin(a), a.size());
-        MessageBox(hWnd, std::begin(a), nullptr, 0);
+        if (i >= 0) {
+            MessageBox(hWnd, wd->disks[i].device_id.c_str(), nullptr, 0);
+        }
     }
 
     const wchar_t main_window_class[] = L"{d716e220-19d9-4e82-bd5d-2b85562636d1}";
