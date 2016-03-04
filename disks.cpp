@@ -100,17 +100,33 @@ void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
         IWbemClassObjectPtr obj;
         {
             ULONG uReturn = 0;
-            com_manager::CheckError(enu->Next(WBEM_INFINITE, 1, &obj, &uReturn));
+            try {
+                com_manager::CheckError(enu->Next(WBEM_INFINITE, 1, &obj, &uReturn));
+            } catch (const _com_error& e) {
+                break;
+            }
             if (uReturn == 0)
                 break;
         }
 
         disk d;
-        d.device_id = _bstr_t(prop_get(obj, L"DeviceID"));
-        d.model = _bstr_t(prop_get(obj, L"Model"));
-        d.size = prop_get(obj, L"Size");
-        d.serial = _bstr_t(prop_get(obj, L"SerialNumber"));
-        d.pnp_device_id = _bstr_t(prop_get(obj, L"PNPDeviceID"));
+        try {
+            d.device_id = _bstr_t(prop_get(obj, L"DeviceID"));
+        } catch (const _com_error& e) {
+            continue;
+        }
+        try {
+            d.model = _bstr_t(prop_get(obj, L"Model"));
+        } catch (const _com_error& e) {}
+        try {
+            d.size = prop_get(obj, L"Size");
+        } catch (const _com_error& e) {}
+        try {
+            d.serial = _bstr_t(prop_get(obj, L"SerialNumber"));
+        } catch (const _com_error& e) {}
+        try {
+            d.pnp_device_id = _bstr_t(prop_get(obj, L"PNPDeviceID"));
+        } catch (const _com_error& e) {}
         try {
             d.dacl = get_dacl(d.device_id);
         } catch (const windows_error& e) {
