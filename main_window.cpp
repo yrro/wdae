@@ -159,23 +159,18 @@ namespace {
                 }
 
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_model, const_cast<wchar_t*>(disk.model.c_str()));
-
                 {
                     std::wostringstream ss;
                     ss << std::fixed << std::setprecision(0) << disk.size / 1'000'000'000.;
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size10, const_cast<wchar_t*>(ss.str().c_str()));
                 }
-
                 {
                     std::wostringstream ss;
                     ss << std::fixed << std::setprecision(2) << disk.size / (1024. * 1024. * 1024.);
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
                 }
-
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
-
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_dacl, const_cast<wchar_t*>(disk.dacl.c_str()));
-
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
 
                 wd->disks.emplace_back(disk);
