@@ -1,5 +1,6 @@
 #pragma once
 
+#include <experimental/optional>
 #include <functional>
 #include <string>
 
@@ -20,7 +21,7 @@ struct disk {
     std::wstring serial;
     std::wstring pnp_device_id;
     std::wstring current_sddl; // retrieved from device
-    std::wstring setup_sddl; // retrieved via setup API
+    std::experimental::optional<std::wstring> setup_sddl; // retrieved via setup API
 };
 
 class disk_lister {

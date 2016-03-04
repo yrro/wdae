@@ -28,8 +28,9 @@ namespace {
         disk_listview_sub_size10,
         disk_listview_sub_size2,
         disk_listview_sub_serial,
-        disk_listview_sub_sddl,
-        disk_listview_sub_pnp_device_id
+        disk_listview_sub_current_sddl,
+        disk_listview_sub_pnp_device_id,
+        disk_listview_sub_setup_sddl
     };
 
     struct window_data {
@@ -115,9 +116,9 @@ namespace {
                 c.cx = 160;
                 (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
-                c.iSubItem = disk_listview_sub_sddl;
+                c.iSubItem = disk_listview_sub_current_sddl;
                 c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"DACL");
+                c.pszText = const_cast<LPWSTR>(L"Current SDDL");
                 c.cx = 290;
                 (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
@@ -125,6 +126,12 @@ namespace {
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"PNP Device ID");
                 c.cx = 160;
+                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+
+                c.iSubItem = disk_listview_sub_setup_sddl;
+                c.fmt = LVCFMT_LEFT;
+                c.pszText = const_cast<LPWSTR>(L"Setup SDDL");
+                c.cx = 290;
                 (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
             }
         }
@@ -170,8 +177,9 @@ namespace {
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
                 }
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
-                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_sddl, const_cast<wchar_t*>(disk.current_sddl.c_str()));
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_current_sddl, const_cast<wchar_t*>(disk.current_sddl.c_str()));
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_setup_sddl, const_cast<wchar_t*>(disk.setup_sddl ? disk.setup_sddl->c_str() : L"[unset]"));
 
                 wd->disks.emplace_back(disk);
             });
