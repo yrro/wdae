@@ -28,7 +28,7 @@ namespace {
         disk_listview_sub_size10,
         disk_listview_sub_size2,
         disk_listview_sub_serial,
-        disk_listview_sub_dacl,
+        disk_listview_sub_sddl,
         disk_listview_sub_pnp_device_id
     };
 
@@ -115,7 +115,7 @@ namespace {
                 c.cx = 160;
                 (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
-                c.iSubItem = disk_listview_sub_dacl;
+                c.iSubItem = disk_listview_sub_sddl;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"DACL");
                 c.cx = 290;
@@ -170,7 +170,7 @@ namespace {
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
                 }
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
-                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_dacl, const_cast<wchar_t*>(disk.current_dacl.c_str()));
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_sddl, const_cast<wchar_t*>(disk.current_sddl.c_str()));
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
 
                 wd->disks.emplace_back(disk);
