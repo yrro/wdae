@@ -129,11 +129,7 @@ namespace {
             }
         }
 
-        {
-            SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(wd.get()));
-            wd.release();
-        }
-
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(wd.release()));
         return TRUE;
     }
 
