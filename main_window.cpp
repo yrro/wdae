@@ -50,8 +50,7 @@ namespace {
     BOOL on_create(HWND hWnd, LPCREATESTRUCT /*lpcs*/) {
         std::unique_ptr<window_data> wd;
         try {
-            auto temp = std::make_unique<window_data>();
-            wd = std::move(temp);
+            wd = std::make_unique<window_data>();
         } catch (const _com_error& e) {
             explain(e);
             return FALSE;
@@ -144,8 +143,8 @@ namespace {
     }
 
     void on_activate(HWND hWnd) {
-        SetForegroundWindow(hWnd);
         ShowWindow(hWnd, SW_RESTORE);
+        SetForegroundWindow(hWnd);
     }
 
     void refresh_disks(HWND hWnd, window_data* wd) {
