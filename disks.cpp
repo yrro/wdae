@@ -2,11 +2,13 @@
 
 #include <memory>
 #include <sstream>
+#include <vector>
 
 #include "com_manager.hpp"
 #include "explain.hpp"
 
 #include <aclapi.h>
+#include <setupapi.h>
 #include <sddl.h>
 
 namespace {
@@ -60,7 +62,66 @@ namespace {
     }
 
     std::wstring get_setup_sddl(std::wstring pnp_device_id) {
-        return L"dummy";
+        std::unique_ptr<VOID, decltype(&SetupDiDestroyDeviceInfoList)> dev(nullptr, SetupDiDestroyDeviceInfoList);
+        {
+            HDEVINFO h = SetupDiGetClassDevs(&GUID_DEVINTERFACE_DISK, NULL, NULL, DIGCF_DEVICEINTERFACE);
+            if (h == INVALID_HANDLE_VALUE) {
+                throw windows_error(L"SetupDiGetClassDevs", GetLastError());
+            }
+            dev.reset(h);
+        }
+
+        SP_DEVICE_INTERFACE_DATA intf;
+        intf.cbSize = sizeof intf;
+        for (int i = 0; ; ++i) {
+            if (!SetupDiEnumDeviceInterfaces(dev.get(), NULL, &GUID_DEVINTERFACE_DISK, i, &intf)) {
+                if (GetLastError() == ERROR_NO_MORE_ITEMS) {
+                    break;
+                }
+                throw windows_error(L"SetupDiEnumDeviceInterfaces", GetLastError());
+            }
+
+            std::vector<char> name_raw;
+            SP_DEVICE_INTERFACE_DETAIL_DATA* name = nullptr;
+            {
+                DWORD s;
+                SetupDiGetDeviceInterfaceDetail(dev.get(), &intf, nullptr, 0, &s, nullptr);
+                if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+                    throw windows_error(L"SetupDiGetDeviceInterfaceDetail 1", GetLastError());
+                }
+                name_raw.resize(s);
+                name = reinterpret_cast<SP_DEVICE_INTERFACE_DETAIL_DATA* const>(&name_raw[0]);
+            }
+
+            name->cbSize = sizeof *name;
+            SP_DEVINFO_DATA info;
+            info.cbSize = sizeof info;
+            if (!SetupDiGetDeviceInterfaceDetail(dev.get(), &intf, name, name_raw.size(), nullptr, &info)) {
+                throw windows_error(L"SetupDiGetDeviceInterfaceDetail 2", GetLastError());
+            }
+
+            std::vector<wchar_t> instance_id;
+            {
+                DWORD s;
+                SetupDiGetDeviceInstanceId(dev.get(), &info, nullptr, 0, &s);
+                if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+                    throw windows_error(L"SetupDiGetDeviceInstanceId 1", GetLastError());
+                }
+                instance_id.resize(s);
+            }
+
+            if (!SetupDiGetDeviceInstanceId (dev.get(), &info, &instance_id[0], instance_id.size(), nullptr)) {
+                throw windows_error(L"SetupDiGetDeviceInstanceId 2", GetLastError());
+            }
+
+            if (std::wstring(&instance_id[0]) != pnp_device_id)
+                continue;
+
+            MessageBox(nullptr, &instance_id[0], nullptr, 0);
+            return L"TODO";
+        }
+
+        return L"uh oh";
     }
 }
 
