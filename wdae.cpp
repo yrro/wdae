@@ -31,6 +31,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
     }
     if (m->prev_instance_exists()) {
         main_window_activate_prev_instance();
+        return 0;
     }
 
     std::experimental::optional<com_manager> c;
