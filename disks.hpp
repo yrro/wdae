@@ -19,7 +19,8 @@ struct disk {
     std::uint64_t size;
     std::wstring serial;
     std::wstring pnp_device_id;
-    std::wstring dacl;
+    std::wstring current_dacl; // retrieved from device
+    std::wstring setup_dacl; // retrieved via setup API
 };
 
 class disk_lister {

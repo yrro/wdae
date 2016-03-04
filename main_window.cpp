@@ -170,7 +170,7 @@ namespace {
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
                 }
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
-                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_dacl, const_cast<wchar_t*>(disk.dacl.c_str()));
+                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_dacl, const_cast<wchar_t*>(disk.current_dacl.c_str()));
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
 
                 wd->disks.emplace_back(disk);

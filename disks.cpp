@@ -16,7 +16,7 @@ namespace {
         return _variant_t(t, false);
     }
 
-    std::wstring get_dacl(std::wstring device_id) {
+    std::wstring get_current_dacl(std::wstring device_id) {
         std::unique_ptr<void, decltype(&CloseHandle)> f(nullptr, CloseHandle);
         {
             HANDLE h = CreateFileW(
@@ -57,6 +57,10 @@ namespace {
         }
 
         return std::wstring(sddl.get());
+    }
+
+    std::wstring get_setup_dacl(std::wstring pnp_device_id) {
+        return L"dummy";
     }
 }
 
@@ -128,11 +132,18 @@ void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
             d.pnp_device_id = _bstr_t(prop_get(obj, L"PNPDeviceID"));
         } catch (const _com_error& e) {}
         try {
-            d.dacl = get_dacl(d.device_id);
+            d.current_dacl = get_current_dacl(d.device_id);
         } catch (const windows_error& e) {
             std::wostringstream ss;
             ss << "[" << e.msg() << ": " << wstrerror(e.code()) << " (" << e.code() << ")]";
-            d.dacl = ss.str();
+            d.current_dacl = ss.str();
+        }
+        try {
+            d.setup_dacl = get_setup_dacl(d.pnp_device_id);
+        } catch (const windows_error& e) {
+            std::wostringstream ss;
+            ss << "[" << e.msg() << ": " << wstrerror(e.code()) << " (" << e.code() << ")]";
+            d.setup_dacl = ss.str();
         }
         f(d);
     }
