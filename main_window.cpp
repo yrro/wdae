@@ -274,7 +274,7 @@ void main_window_create(HINSTANCE hInstance, int nCmdShow) {
 
 void main_window_activate_prev_instance() {
     DWORD recipients = BSM_APPLICATIONS;
-    BroadcastSystemMessage(BSF_POSTMESSAGE | BSF_IGNORECURRENTTASK, &recipients, msg_activate, 0, 0);
+    BroadcastSystemMessage(BSF_ALLOWSFW | BSF_POSTMESSAGE | BSF_IGNORECURRENTTASK, &recipients, msg_activate, 0, 0);
 }
 
 LRESULT CALLBACK main_window_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
