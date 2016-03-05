@@ -33,8 +33,8 @@ void explain(const wchar_t* msg, DWORD code, HWND hWnd) {
     MessageBoxW(hWnd, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
 }
 
-void explain(const windows_error& e) {
-    explain(e.msg.c_str(), e.code);
+void explain(const windows_error& e, HWND hWnd) {
+    MessageBoxW(hWnd, e.wwhat().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);
 }
 
 void explain(const _com_error& e, HWND hWnd) {

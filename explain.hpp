@@ -6,6 +6,8 @@
 
 #include <windows.h>
 
+std::wstring wstrerror(DWORD error);
+
 struct _com_error;
 
 struct windows_error: public std::exception {
@@ -35,12 +37,11 @@ struct windows_error: public std::exception {
         if (!msg.empty()) {
             ss << L" ← " << msg;
         }
+        ss << ": " << code << ' ' << wstrerror(code);
         return ss.str();
     }
 };
 
-std::wstring wstrerror(DWORD error);
-
 void explain(const wchar_t* msg, DWORD e = GetLastError(), HWND hWnd = nullptr);
-void explain(const windows_error& e);
+void explain(const windows_error& e, HWND hWnd = nullptr);
 void explain(const _com_error& e, HWND hWnd = nullptr);
