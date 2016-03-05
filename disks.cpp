@@ -27,7 +27,7 @@ namespace {
                 nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr
             );
             if (h == INVALID_HANDLE_VALUE) {
-                throw windows_error(L"CreateFile", GetLastError());
+                throw windows_error(GetLastError(), L"CreateFile");
             }
             f.reset(h);
         }
@@ -44,7 +44,7 @@ namespace {
                 &sdp
             );
             if (r != ERROR_SUCCESS) {
-                throw windows_error(L"GetSecurityInfo", r);
+                throw windows_error(r, L"GetSecurityInfo");
             }
             sd.reset(sdp);
         }
@@ -53,7 +53,7 @@ namespace {
         {
             wchar_t* p;
             if (!ConvertSecurityDescriptorToStringSecurityDescriptor(sd.get(), SDDL_REVISION_1, i, &p, nullptr)) {
-                throw windows_error(L"ConvertSecurityDescriptorToStringSecurityDescriptor", GetLastError());
+                throw windows_error(GetLastError(), L"ConvertSecurityDescriptorToStringSecurityDescriptor");
             }
             sddl.reset(p);
         }
@@ -66,7 +66,7 @@ namespace {
         {
             HDEVINFO h = SetupDiGetClassDevs(&GUID_DEVINTERFACE_DISK, NULL, NULL, DIGCF_DEVICEINTERFACE);
             if (h == INVALID_HANDLE_VALUE) {
-                throw windows_error(L"SetupDiGetClassDevs", GetLastError());
+                throw windows_error(GetLastError(), L"SetupDiGetClassDevs");
             }
             dev.reset(h);
         }
@@ -78,7 +78,7 @@ namespace {
                 if (GetLastError() == ERROR_NO_MORE_ITEMS) {
                     break;
                 }
-                throw windows_error(L"SetupDiEnumDeviceInterfaces", GetLastError());
+                throw windows_error(GetLastError(), L"SetupDiEnumDeviceInterfaces");
             }
 
             std::vector<BYTE> name_raw;
@@ -87,7 +87,7 @@ namespace {
                 DWORD s; // size in bytes
                 SetupDiGetDeviceInterfaceDetailW(dev.get(), &intf, nullptr, 0, &s, nullptr);
                 if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-                    throw windows_error(L"SetupDiGetDeviceInterfaceDetail 1", GetLastError());
+                    throw windows_error(GetLastError(), L"SetupDiGetDeviceInterfaceDetail 1");
                 }
                 name_raw.resize(s);
                 name = reinterpret_cast<SP_DEVICE_INTERFACE_DETAIL_DATA* const>(&name_raw[0]);
@@ -97,7 +97,7 @@ namespace {
             SP_DEVINFO_DATA info;
             info.cbSize = sizeof info;
             if (!SetupDiGetDeviceInterfaceDetailW(dev.get(), &intf, name, name_raw.size(), nullptr, &info)) {
-                throw windows_error(L"SetupDiGetDeviceInterfaceDetail 2", GetLastError());
+                throw windows_error(GetLastError(), L"SetupDiGetDeviceInterfaceDetail 2");
             }
 
             std::vector<wchar_t> instance_id;
@@ -105,13 +105,13 @@ namespace {
                 DWORD s; // number of characters
                 SetupDiGetDeviceInstanceIdW(dev.get(), &info, nullptr, 0, &s);
                 if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-                    throw windows_error(L"SetupDiGetDeviceInstanceId 1", GetLastError());
+                    throw windows_error(GetLastError(), L"SetupDiGetDeviceInstanceId 1");
                 }
                 instance_id.resize(s);
             }
 
             if (!SetupDiGetDeviceInstanceIdW(dev.get(), &info, &instance_id[0], instance_id.size(), nullptr)) {
-                throw windows_error(L"SetupDiGetDeviceInstanceId 2", GetLastError());
+                throw windows_error(GetLastError(), L"SetupDiGetDeviceInstanceId 2");
             }
 
             if (std::wstring(&instance_id[0]) != pnp_device_id)
@@ -124,13 +124,13 @@ namespace {
                 if (GetLastError() == ERROR_INVALID_DATA) {
                     return std::experimental::nullopt;
                 } else if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-                    throw windows_error(L"SetupDiGetDeviceRegistryProperty 1", GetLastError());
+                    throw windows_error(GetLastError(), L"SetupDiGetDeviceRegistryProperty 1");
                 }
                 sddl.resize(s);
             }
 
             if (!SetupDiGetDeviceRegistryPropertyW(dev.get(), &info, SPDRP_SECURITY_SDS, nullptr, &sddl[0], sddl.size(), nullptr)) {
-                throw windows_error(L"SetupDiGetDeviceRegistryProperty 2", GetLastError());
+                throw windows_error(GetLastError(), L"SetupDiGetDeviceRegistryProperty 2");
             }
 
             return std::wstring(reinterpret_cast<wchar_t*>(&sddl[0]));
@@ -212,14 +212,14 @@ void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
             d.current_sddl = get_current_sddl(d.device_id);
         } catch (const windows_error& e) {
             std::wostringstream ss;
-            ss << "[" << e.msg() << ": " << wstrerror(e.code()) << " (" << e.code() << ")]";
+            ss << "[" << e.msg << ": " << wstrerror(e.code) << " (" << e.code << ")]";
             d.current_sddl = ss.str();
         }
         try {
             d.setup_sddl = get_setup_sddl(d.pnp_device_id);
         } catch (const windows_error& e) {
             std::wostringstream ss;
-            ss << "[" << e.msg() << ": " << wstrerror(e.code()) << " (" << e.code() << ")]";
+            ss << "[" << e.msg << ": " << wstrerror(e.code) << " (" << e.code << ")]";
             d.setup_sddl = ss.str();
         }
         f(d);

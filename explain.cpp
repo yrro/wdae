@@ -3,6 +3,7 @@
 #include <memory>
 #include <sstream>
 
+// replace with windows_category or maybe hresult_category
 std::wstring wstrerror(DWORD error) {
     std::unique_ptr<wchar_t, decltype(&LocalFree)> errmsg(nullptr, LocalFree);
     {
@@ -31,10 +32,11 @@ void explain(const wchar_t* msg, DWORD code, HWND hWnd) {
 }
 
 void explain(const windows_error& e) {
-    explain(e.msg().c_str(), e.code());
+    explain(e.msg.c_str(), e.code);
 }
 
 void explain(const _com_error& e, HWND hWnd) {
+    // XXX use e.ErrorMessage and if e.ErrorInfo then the IErrorInfo functions
     std::wostringstream ss;
     ss << std::showbase << std::hex << e.Error() << '\n' << e.ErrorMessage();
     MessageBoxW(hWnd, ss.str().c_str(), L"Windows Disk ACL Editor", MB_ICONEXCLAMATION);

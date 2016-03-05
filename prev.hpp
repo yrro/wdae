@@ -15,7 +15,7 @@ public:
     {
         m.reset(CreateMutexW(nullptr, FALSE, mutex_name));
         if (!m) {
-            throw windows_error(L"CreateMutex", GetLastError());
+            throw windows_error(GetLastError(), L"CreateMutex");
         }
         prev = (GetLastError() == ERROR_ALREADY_EXISTS);
     }

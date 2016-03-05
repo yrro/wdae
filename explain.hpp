@@ -2,32 +2,40 @@
 
 #include <stdexcept>
 #include <string>
+#include <sstream>
 
 #include <windows.h>
 
 #include <comdef.h>
 
-class windows_error: public std::runtime_error {
-    std::wstring _msg;
-    DWORD _code;
+struct windows_error: public std::exception {
+    // XXX use HRESULT_FROM_WIN32 to genralize for HRESULT?
 
-public:
-    windows_error(std::wstring msg, DWORD code):
-        runtime_error("windows_error"),
-        _msg(msg),
-        _code(code)
+    DWORD code;
+    std::wstring msg;
+    const char* file;
+    int line;
+    const char* function;
+
+    windows_error(DWORD code, std::wstring msg=L"", const char* file=__builtin_FILE(), int line=__builtin_LINE(), const char* function=__builtin_FUNCTION()):
+        code(code),
+        msg(msg),
+        file(file),
+        line(line),
+        function(function)
     {}
 
-    virtual const char* what() const throw() {
-        return "[windows_exception::what() not implemented";
+    virtual const char* what() const noexcept {
+        return "[what() not implemented, call wwhat() instead]";
     }
 
-    const std::wstring& msg() const throw() {
-        return _msg;
-    }
-
-    DWORD code() const throw() {
-        return _code;
+    std::wstring wwhat() const noexcept {
+        std::wostringstream ss;
+        ss << file << L':' << line << L" (" << function << L')';
+        if (!msg.empty()) {
+            ss << L" ← " << msg;
+        }
+        return ss.str();
     }
 };
 
