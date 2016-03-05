@@ -147,7 +147,7 @@ disk_lister::disk_lister() {
     com_manager::CheckError(loc.CreateInstance(CLSID_WbemLocator));
 
     com_manager::CheckError(hr = loc->ConnectServer(
-        _bstr_t(L"ROOT\\CIMV2"),
+        _bstr_t(L"\\\\.\\ROOT\\CIMV2"),
         nullptr, nullptr,
         nullptr,
         0,
