@@ -57,6 +57,9 @@ public:
     // <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=816427>
     inline static void CheckError(HRESULT hr) {
         if (FAILED(hr)) {
+            // we could call _com_issue_error(hr) but it does not take a
+            // IErrorInfo* parameter, which we use below, so for consistency
+            // we'll just throw the exception ourselves.
             throw _com_error(hr);
         }
     }
