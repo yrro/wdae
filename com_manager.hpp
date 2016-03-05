@@ -53,7 +53,7 @@ public:
         return *this;
     }
 
-    // Can't use _com_issue_error:
+    // Can't use _com_util::CheckError:
     // <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=816427>
     inline static void CheckError(HRESULT hr) {
         if (FAILED(hr)) {
