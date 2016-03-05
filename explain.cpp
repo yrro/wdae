@@ -3,6 +3,8 @@
 #include <memory>
 #include <sstream>
 
+#include <comdef.h>
+
 // replace with windows_category or maybe hresult_category
 std::wstring wstrerror(DWORD error) {
     std::unique_ptr<wchar_t, decltype(&LocalFree)> errmsg(nullptr, LocalFree);

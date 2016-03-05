@@ -2,6 +2,8 @@
 
 #include <windows.h>
 
+#include <comdef.h>
+
 #include "explain.hpp"
 
 _COM_SMARTPTR_TYPEDEF(ISupportErrorInfo, IID_ISupportErrorInfo);

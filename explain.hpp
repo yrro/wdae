@@ -6,7 +6,7 @@
 
 #include <windows.h>
 
-#include <comdef.h>
+struct _com_error;
 
 struct windows_error: public std::exception {
     // XXX use HRESULT_FROM_WIN32 to genralize for HRESULT?
