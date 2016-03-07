@@ -36,5 +36,5 @@ class disk_lister {
 
 public:
     disk_lister();
-    void for_each_disk(std::function<void(const disk&)>);
+    void for_each_disk(std::function<void(const disk&) noexcept>);
 };

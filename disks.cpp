@@ -167,7 +167,7 @@ disk_lister::disk_lister() {
     ));
 }
 
-void disk_lister::for_each_disk(std::function<void(const disk&)> f) {
+void disk_lister::for_each_disk(std::function<void(const disk&) noexcept> f) {
     IEnumWbemClassObjectPtr enu;
     com_manager::CheckError(svc->ExecQuery(
         _bstr_t(L"WQL"),

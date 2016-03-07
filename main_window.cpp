@@ -129,7 +129,7 @@ namespace {
             (void)ListView_DeleteAllItems(wd->disk_listview);
             wd->disks.clear();
 
-            wd->lister.for_each_disk([&](const disk& disk) {
+            wd->lister.for_each_disk([&](const disk& disk) noexcept {
                 {
                     LVITEMW item;
                     item.mask = LVIF_TEXT;
