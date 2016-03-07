@@ -25,8 +25,6 @@ struct disk {
     std::uint64_t size;
     std::wstring serial;
     std::wstring pnp_device_id;
-    std::wstring current_sddl; // retrieved from device
-    std::experimental::optional<std::wstring> setup_sddl; // retrieved via setup API
     disk_state state;
 };
 

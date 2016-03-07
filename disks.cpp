@@ -227,20 +227,6 @@ void disk_lister::for_each_disk(std::function<void(const disk&) noexcept> f) {
         try {
             d.pnp_device_id = _bstr_t(prop_get(obj, L"PNPDeviceID"));
         } catch (const _com_error& e) {}
-        try {
-            d.current_sddl = get_current_sddl(d.device_id);
-        } catch (const windows_error& e) {
-            std::wostringstream ss;
-            ss << '[' << e.wwhat() << ']';
-            d.current_sddl = ss.str();
-        }
-        try {
-            d.setup_sddl = get_setup_sddl(d.pnp_device_id);
-        } catch (const windows_error& e) {
-            std::wostringstream ss;
-            ss << '[' << e.wwhat() << ']';
-            d.setup_sddl = ss.str();
-        }
         f(d);
     }
 }
