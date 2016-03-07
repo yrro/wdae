@@ -27,9 +27,7 @@ namespace {
         disk_listview_sub_model,
         disk_listview_sub_size10,
         disk_listview_sub_serial,
-        disk_listview_sub_current_sddl,
-        disk_listview_sub_pnp_device_id,
-        disk_listview_sub_setup_sddl
+        disk_listview_sub_state
     };
 
     struct window_data {
@@ -83,49 +81,32 @@ namespace {
                 (void)ListView_SetExtendedListViewStyle(wd->disk_listview, LVS_EX_FULLROWSELECT);
 
                 LVCOLUMNW c;
-                c.mask = LVCF_FMT | LVCF_TEXT | LVCF_SUBITEM | LVCF_WIDTH;
+                c.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH;
 
-                c.iSubItem = disk_listview_sub_device_id;
                 c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"Device ID");
+                c.pszText = const_cast<LPWSTR>(L"Device");
                 c.cx = 130;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_device_id, &c);
 
-                c.iSubItem = disk_listview_sub_model;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Model");
                 c.cx = 250;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_model, &c);
 
-                c.iSubItem = disk_listview_sub_size10;
                 c.fmt = LVCFMT_RIGHT;
                 c.pszText = const_cast<LPWSTR>(L"Size (GB)");
-                c.cx = 80;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                c.cx = 60;
+                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_size10, &c);
 
-                c.iSubItem = disk_listview_sub_serial;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Serial");
                 c.cx = 160;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_serial, &c);
 
-                c.iSubItem = disk_listview_sub_current_sddl;
                 c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"Current SDDL");
-                c.cx = 290;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
-
-                c.iSubItem = disk_listview_sub_pnp_device_id;
-                c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"PNP Device ID");
-                c.cx = 160;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
-
-                c.iSubItem = disk_listview_sub_setup_sddl;
-                c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"Setup SDDL");
-                c.cx = 290;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
+                c.pszText = const_cast<LPWSTR>(L"State");
+                c.cx = 180;
+                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_state, &c);
             }
         }
 
@@ -165,9 +146,11 @@ namespace {
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size10, const_cast<wchar_t*>(ss.str().c_str()));
                 }
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
-                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_current_sddl, const_cast<wchar_t*>(disk.current_sddl.c_str()));
-                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_pnp_device_id, const_cast<wchar_t*>(disk.pnp_device_id.c_str()));
-                ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_setup_sddl, const_cast<wchar_t*>(disk.setup_sddl ? disk.setup_sddl->c_str() : L"[unset]"));
+                {
+                    std::wostringstream ss;
+                    ss << disk.state;
+                    ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_state, const_cast<wchar_t*>(ss.str().c_str()));
+                }
 
                 wd->disks.emplace_back(disk);
             });

@@ -14,6 +14,11 @@ _COM_SMARTPTR_TYPEDEF(IWbemServices, IID_IWbemServices);
 _COM_SMARTPTR_TYPEDEF(IEnumWbemClassObject, IID_IEnumWbemClassObject);
 _COM_SMARTPTR_TYPEDEF(IWbemClassObject, IID_IWbemClassObject);
 
+enum disk_state {
+    inaccessible,
+    accessible
+};
+
 struct disk {
     std::wstring device_id;
     std::wstring model;
@@ -22,6 +27,7 @@ struct disk {
     std::wstring pnp_device_id;
     std::wstring current_sddl; // retrieved from device
     std::experimental::optional<std::wstring> setup_sddl; // retrieved via setup API
+    disk_state state;
 };
 
 class disk_lister {
