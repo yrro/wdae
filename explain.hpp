@@ -37,7 +37,7 @@ struct windows_error: public std::exception {
         if (!msg.empty()) {
             ss << L" ← " << msg;
         }
-        ss << ": " << code << ' ' << wstrerror(code);
+        ss << ": " << code << L", " << wstrerror(code);
         return ss.str();
     }
 };
