@@ -26,7 +26,6 @@ namespace {
         disk_listview_sub_device_id = 0,
         disk_listview_sub_model,
         disk_listview_sub_size10,
-        disk_listview_sub_size2,
         disk_listview_sub_serial,
         disk_listview_sub_current_sddl,
         disk_listview_sub_pnp_device_id,
@@ -104,12 +103,6 @@ namespace {
                 c.cx = 80;
                 (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
 
-                c.iSubItem = disk_listview_sub_size2;
-                c.fmt = LVCFMT_RIGHT;
-                c.pszText = const_cast<LPWSTR>(L"Size (GiB)");
-                c.cx = 80;
-                (void)ListView_InsertColumn(wd->disk_listview, c.iSubItem, &c);
-
                 c.iSubItem = disk_listview_sub_serial;
                 c.fmt = LVCFMT_LEFT;
                 c.pszText = const_cast<LPWSTR>(L"Serial");
@@ -170,11 +163,6 @@ namespace {
                     std::wostringstream ss;
                     ss << std::fixed << std::setprecision(0) << disk.size / 1'000'000'000.;
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size10, const_cast<wchar_t*>(ss.str().c_str()));
-                }
-                {
-                    std::wostringstream ss;
-                    ss << std::fixed << std::setprecision(2) << disk.size / (1024. * 1024. * 1024.);
-                    ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size2, const_cast<wchar_t*>(ss.str().c_str()));
                 }
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_current_sddl, const_cast<wchar_t*>(disk.current_sddl.c_str()));
