@@ -12,6 +12,25 @@
 #include <sddl.h>
 
 namespace {
+    template<typename T>
+    struct LocalAlloc_delete {
+        void operator()(T* p) const noexcept {
+            LocalFree(p);
+        }
+    };
+
+    // PSECURITY_DESCRIPTOR is not a SECURITY_DESCRIPTOR*
+    template<>
+    struct LocalAlloc_delete<SECURITY_DESCRIPTOR> {
+        using pointer = PSECURITY_DESCRIPTOR;
+        void operator()(pointer p) const noexcept {
+            LocalFree(p);
+        }
+    };
+
+    template<typename T>
+    using unique_local_ptr = std::unique_ptr<T, LocalAlloc_delete<T>>;
+
     _variant_t prop_get(IWbemClassObject* o, LPCWSTR name) {
         VARIANT t;
         com_manager::CheckError(o->Get(name, 0, &t, nullptr, nullptr));
@@ -34,7 +53,7 @@ namespace {
 
         const SECURITY_INFORMATION i = OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION;
 
-        std::unique_ptr<void, decltype(&LocalFree)> sd(nullptr, LocalFree);
+        unique_local_ptr<SECURITY_DESCRIPTOR> sd;
         {
             PSECURITY_DESCRIPTOR sdp = nullptr;
             DWORD r = GetSecurityInfo(
