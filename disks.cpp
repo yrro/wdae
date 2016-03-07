@@ -42,7 +42,7 @@ namespace {
         {
             HANDLE h = CreateFileW(
                 device_id.c_str(),
-                READ_CONTROL, FILE_SHARE_READ,
+                READ_CONTROL, 0,
                 nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr
             );
             if (h == INVALID_HANDLE_VALUE) {
