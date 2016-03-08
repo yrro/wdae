@@ -45,6 +45,26 @@ namespace {
         return _variant_t(t, false);
     }
 
+    disk_state get_state(std::wstring device_id) {
+        HANDLE h = CreateFile(
+            device_id.c_str(),
+            GENERIC_READ | GENERIC_WRITE,
+            0,
+            nullptr,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            nullptr
+        );
+        if (h == INVALID_HANDLE_VALUE) {
+            if (GetLastError() == ERROR_ACCESS_DENIED) {
+                return inaccessible;
+            }
+            throw windows_error(GetLastError(), L"CreateFile");
+        }
+        unique_handle f(h);
+        return accessible;
+    }
+
     std::wstring get_current_sddl(std::wstring device_id) {
         unique_handle f;
         {
@@ -220,21 +240,19 @@ void disk_lister::for_each_disk(std::function<void(const disk&) noexcept> f) {
         disk d;
         try {
             d.device_id = _bstr_t(prop_get(obj, L"DeviceID"));
+            d.model = _bstr_t(prop_get(obj, L"Model"));
+            d.size = prop_get(obj, L"Size");
+            d.serial = _bstr_t(prop_get(obj, L"SerialNumber"));
+            d.pnp_device_id = _bstr_t(prop_get(obj, L"PNPDeviceID"));
         } catch (const _com_error& e) {
             continue;
         }
         try {
-            d.model = _bstr_t(prop_get(obj, L"Model"));
-        } catch (const _com_error& e) {}
-        try {
-            d.size = prop_get(obj, L"Size");
-        } catch (const _com_error& e) {}
-        try {
-            d.serial = _bstr_t(prop_get(obj, L"SerialNumber"));
-        } catch (const _com_error& e) {}
-        try {
-            d.pnp_device_id = _bstr_t(prop_get(obj, L"PNPDeviceID"));
-        } catch (const _com_error& e) {}
+            d.state = get_state(d.device_id);
+        } catch (const windows_error& e) {
+            continue;
+        }
+
         f(d);
     }
 }
