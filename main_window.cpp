@@ -145,11 +145,16 @@ namespace {
                     ss << std::fixed << std::setprecision(0) << disk.size / 1'000'000'000.;
                     ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_size10, const_cast<wchar_t*>(ss.str().c_str()));
                 }
+
                 ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_serial, const_cast<wchar_t*>(disk.serial.c_str()));
-                {
-                    std::wostringstream ss;
-                    ss << disk.state;
-                    ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_state, const_cast<wchar_t*>(ss.str().c_str()));
+
+                switch(disk.state) {
+                case accessible:
+                    ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_state, const_cast<wchar_t*>(L"accessible"));
+                    break;
+                case inaccessible:
+                    ListView_SetItemText(wd->disk_listview, wd->disks.size(), disk_listview_sub_state, const_cast<wchar_t*>(L"inaccessible"));
+                    break;
                 }
 
                 wd->disks.emplace_back(disk);
