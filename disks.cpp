@@ -31,6 +31,22 @@ namespace {
     template<typename T>
     using unique_local_ptr = std::unique_ptr<T, LocalAlloc_delete<T>>;
 
+    struct HANDLE_delete {
+        void operator()(HANDLE h) const noexcept {
+            CloseHandle(h);
+        }
+    };
+
+    using unique_handle = std::unique_ptr<std::remove_pointer<HANDLE>::type, HANDLE_delete>;
+
+    unique_handle make_unique_handle_CreateFile(LPCTSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) {
+        HANDLE h = CreateFile(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+        if (h == INVALID_HANDLE_VALUE) {
+            throw windows_error(GetLastError(), L"CreateFile");
+        }
+        return unique_handle(h);
+    }
+
     _variant_t prop_get(IWbemClassObject* o, LPCWSTR name) {
         VARIANT t;
         com_manager::CheckError(o->Get(name, 0, &t, nullptr, nullptr));
@@ -38,18 +54,11 @@ namespace {
     }
 
     std::wstring get_current_sddl(std::wstring device_id) {
-        std::unique_ptr<void, decltype(&CloseHandle)> f(nullptr, CloseHandle);
-        {
-            HANDLE h = CreateFileW(
-                device_id.c_str(),
-                READ_CONTROL, 0,
-                nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr
-            );
-            if (h == INVALID_HANDLE_VALUE) {
-                throw windows_error(GetLastError(), L"CreateFile");
-            }
-            f.reset(h);
-        }
+        unique_handle f = make_unique_handle_CreateFile(
+            device_id.c_str(),
+            READ_CONTROL, 0,
+            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr
+        );
 
         const SECURITY_INFORMATION i = OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION;
 
