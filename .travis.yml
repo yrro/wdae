@@ -10,10 +10,20 @@ install: docker pull debian:stretch
 script:
     - mkdir build
     - |
-        docker run -v "$PWD:/workspace" -w /workspace/build debian:stretch /bin/bash -ex -c '
-            apt -q update
-            DEBIAN_FRONTEND=noninteractive apt -qqy install cmake g++-mingw-w64-x86-64
-            cmake \
+        docker run -v "$PWD:/workspace" -w /workspace/build debian:stretch /bin/bash -e -c '
+            function travis_fold {
+                local name="$1"; shift
+                echo "travis_fold:start:$name"
+                echo "\$ $@"
+                "$@"
+                echo "travis_fold:end:$name"
+            }
+
+            travis_fold docker-apt-update apt -q update
+
+            DEBIAN_FRONTEND=noninteractive travis_fold docker-apt-install apt -qqy install cmake g++-mingw-w64-x86-64
+
+            travis_fold docker-cmake cmake \
                 -DCMAKE_SYSTEM_NAME=Windows \
                 -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
                 -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
@@ -23,5 +33,6 @@ script:
                 -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
                 /workspace
-            make VERBOSE=1
+
+            travis_fold docker-make make VERBOSE=1
         '
