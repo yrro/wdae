@@ -227,7 +227,7 @@ void disk_lister::for_each_disk(std::function<void(const disk&) noexcept> f) {
     for (;;) {
         IWbemClassObjectPtr obj;
         {
-            ULONG uReturn = 0;
+            ULONG uReturn;
             try {
                 com_manager::CheckError(enu->Next(WBEM_INFINITE, 1, &obj, &uReturn));
             } catch (const _com_error& e) {
