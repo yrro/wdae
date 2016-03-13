@@ -229,7 +229,7 @@ void disk_lister::for_each_disk(std::function<void(const disk&) noexcept> f) {
         {
             ULONG uReturn;
             try {
-                com_manager::CheckError(enu->Next(LONG(WBEM_INFINITE), 1, &obj, &uReturn));
+                com_manager::CheckError(enu->Next(static_cast<LONG>(WBEM_INFINITE), 1, &obj, &uReturn));
             } catch (const _com_error& e) {
                 break;
             }
