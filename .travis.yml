@@ -35,5 +35,5 @@ script:
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
                 /workspace
 
-            travis_fold docker-make make VERBOSE=1
+            travis_fold docker-make make -k VERBOSE=1
         '
