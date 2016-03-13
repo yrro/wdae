@@ -1,5 +1,6 @@
 #include "main_window.hpp"
 
+#include <experimental/optional>
 #include <iomanip>
 #include <cassert>
 #include <memory>
@@ -19,7 +20,8 @@ namespace {
 
     enum idc {
         idc_disks_refresh,
-        idc_disks_list
+        idc_disks_list,
+        idc_vm_list
     };
 
     enum disk_listview_sub_item {
@@ -39,6 +41,7 @@ namespace {
 
         HWND disk_refresh_button;
         HWND disk_listview;
+        HWND vm_listview;
 
         window_data()
             :message_font(nullptr, DeleteObject)
@@ -65,50 +68,55 @@ namespace {
             WS_CHILD | WS_VISIBLE,
             control_margin, control_margin, 100, 100,
             hWnd, reinterpret_cast<HMENU>(idc_disks_refresh),
-            nullptr, nullptr)
-        )) {
+            nullptr, nullptr
+        ))) {
             SetWindowFont(wd->disk_refresh_button, wd->message_font.get(), true);
             PostMessage(hWnd, WM_COMMAND, MAKELONG(idc_disks_refresh, BN_CLICKED), reinterpret_cast<LPARAM>(wd->disk_refresh_button));
         }
 
-        {
-            if ((wd->disk_listview = CreateWindow(WC_LISTVIEW, L"",
-                WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SINGLESEL,
-                50, 300, 800, 500,
-                hWnd, reinterpret_cast<HMENU>(idc_disks_list),
-                nullptr, nullptr)
-            )) {
-                (void)ListView_SetExtendedListViewStyle(wd->disk_listview, LVS_EX_FULLROWSELECT);
+        if ((wd->disk_listview = CreateWindow(WC_LISTVIEW, L"",
+            WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SINGLESEL,
+            50, 300, 300, 100,
+            hWnd, reinterpret_cast<HMENU>(idc_disks_list),
+            nullptr, nullptr
+        ))) {
+            (void)ListView_SetExtendedListViewStyle(wd->disk_listview, LVS_EX_FULLROWSELECT);
 
-                LVCOLUMNW c;
-                c.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH;
+            LVCOLUMNW c;
+            c.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH;
 
-                c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"Device");
-                c.cx = 130;
-                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_device_id, &c);
+            c.fmt = LVCFMT_LEFT;
+            c.pszText = const_cast<LPWSTR>(L"Device");
+            c.cx = 130;
+            (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_device_id, &c);
 
-                c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"Model");
-                c.cx = 250;
-                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_model, &c);
+            c.fmt = LVCFMT_LEFT;
+            c.pszText = const_cast<LPWSTR>(L"Model");
+            c.cx = 250;
+            (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_model, &c);
 
-                c.fmt = LVCFMT_RIGHT;
-                c.pszText = const_cast<LPWSTR>(L"Size (GB)");
-                c.cx = 60;
-                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_size10, &c);
+            c.fmt = LVCFMT_RIGHT;
+            c.pszText = const_cast<LPWSTR>(L"Size (GB)");
+            c.cx = 60;
+            (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_size10, &c);
 
-                c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"Serial");
-                c.cx = 160;
-                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_serial, &c);
+            c.fmt = LVCFMT_LEFT;
+            c.pszText = const_cast<LPWSTR>(L"Serial");
+            c.cx = 160;
+            (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_serial, &c);
 
-                c.fmt = LVCFMT_LEFT;
-                c.pszText = const_cast<LPWSTR>(L"State");
-                c.cx = 180;
-                (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_state, &c);
-            }
+            c.fmt = LVCFMT_LEFT;
+            c.pszText = const_cast<LPWSTR>(L"State");
+            c.cx = 180;
+            (void)ListView_InsertColumn(wd->disk_listview, disk_listview_sub_state, &c);
         }
+
+        wd->vm_listview = CreateWindow(WC_LISTVIEW, L"",
+            WS_CHILD | WS_VISIBLE | LVS_LIST | LVS_SINGLESEL,
+            50, 410, 300, 100,
+            hWnd, reinterpret_cast<HMENU>(idc_vm_list),
+            nullptr, nullptr
+        );
 
         SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(wd.release()));
         return TRUE;
@@ -182,16 +190,22 @@ namespace {
     void on_size(HWND hWnd, UINT, int width, int height) {
         window_data* wd = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
-        SIZE s;
-        if (Button_GetIdealSize(wd->disk_refresh_button, &s)) {
-            MoveWindow(wd->disk_refresh_button, control_margin, control_margin, s.cx, s.cy, false);
+        {
+            SIZE s;
+            if (Button_GetIdealSize(wd->disk_refresh_button, &s)) {
+                MoveWindow(wd->disk_refresh_button, control_margin, control_margin, s.cx, s.cy, false);
+            }
         }
 
-        RECT r;
-        if (GetClientRect(wd->disk_refresh_button, &r)) {
-            POINT p = {0, r.bottom + control_margin};
-            if (MapWindowPoints(wd->disk_refresh_button, hWnd, &p, 1)) {
-                MoveWindow(wd->disk_listview, control_margin, p.y, width - 2 * control_margin, height - p.y - control_margin, false);
+        {
+            RECT r;
+            if (GetClientRect(wd->disk_refresh_button, &r)) {
+                POINT p = {0, r.bottom + control_margin};
+                if (MapWindowPoints(wd->disk_refresh_button, hWnd, &p, 1)) {
+                    int list_heights = height - p.y - 2 * control_margin;
+                    MoveWindow(wd->disk_listview, control_margin, p.y, width - 2 * control_margin, list_heights / 2 - control_margin / 2, false);
+                    MoveWindow(wd->vm_listview, control_margin, p.y + list_heights/2 + control_margin, width - 2 * control_margin, list_heights / 2 - control_margin / 2, false);
+                }
             }
         }
     }
@@ -200,13 +214,15 @@ namespace {
         m->ptMinTrackSize = {640, 480};
     }
 
-    void on_disk_choose(HWND hWnd) {
+    void on_disk_choose(HWND hWnd, std::experimental::optional<int> index) {
         window_data* wd = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
-        int i = ListView_GetNextItem(wd->disk_listview, -1, LVNI_FOCUSED);
-        if (i >= 0) {
-            MessageBox(hWnd, wd->disks[i].device_id.c_str(), nullptr, 0);
-        }
+        LVITEMW item;
+        item.mask = LVIF_TEXT;
+        item.iItem = 0; // size of vm list
+        item.iSubItem = 0;
+        item.pszText = const_cast<wchar_t*>(index ? wd->disks[*index].device_id.c_str() : L"nothing");
+        (void)ListView_InsertItem(wd->vm_listview, &item);
     }
 
     const wchar_t main_window_class[] = L"{d716e220-19d9-4e82-bd5d-2b85562636d1}";
@@ -263,10 +279,21 @@ LRESULT CALLBACK main_window_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         switch (LOWORD(wParam)) {
         case idc_disks_list:
             switch (reinterpret_cast<NMHDR*>(lParam)->code) {
-            case NM_DBLCLK:
-                return on_disk_choose(hWnd), 0;
+            case LVN_ITEMCHANGED:
+                // doesn't catch selected item being removed
+                const NMLISTVIEW* info = reinterpret_cast<NMLISTVIEW*>(lParam);
+                if (info->uChanged & LVIF_STATE) {
+                    if (!(info->uOldState & LVIS_SELECTED) && (info->uNewState & LVIS_SELECTED)) {
+                        on_disk_choose(hWnd, info->iItem);
+                    } else if ((info->uOldState & LVIS_SELECTED) && !(info->uNewState & LVIS_SELECTED)) {
+                        on_disk_choose(hWnd, std::experimental::nullopt);
+                    }
+                }
+                return 0;
             }
+            return 0;
         }
+        return 0;
     }
     if (uMsg == msg_activate) {
         return on_activate(hWnd), 0;
