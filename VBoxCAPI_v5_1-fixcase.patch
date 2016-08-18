@@ -1,0 +1,32 @@
+--- a/sdk/bindings/c/include/VBoxCAPI_v5_1.h	2016-08-18 17:32:21.961015400 +0100
++++ b/sdk/bindings/c/include/VBoxCAPI_v5_1.h	2016-08-18 17:32:32.236941300 +0100
+@@ -47,7 +47,7 @@
+ # pragma warning(disable:4668 4255) /* -Wall and windows.h */
+ # undef COBJMACROS
+ # define COBJMACROS
+-# include "Windows.h"
++# include "windows.h"
+ # pragma warning(pop)
+ #endif /* _WIN32 */
+
+@@ -84,7 +84,7 @@
+  * on Windows, we need to switch to the native C support provided by the header
+  * files produced by the COM IDL compiler. */
+ #ifdef WIN32
+-# include "ObjBase.h"
++# include "objbase.h"
+ # include "oaidl.h"
+ # include "VirtualBox.h"
+
+--- a/extra/iprt/win/windows.h	2016-09-13 12:59:14.200201000 +0100
++++ b/extra/iprt/win/windows.h	2016-09-13 12:59:20.868199100 +0100
+@@ -39,7 +39,7 @@
+ # endif
+ #endif
+
+-#include <Windows.h>
++#include <windows.h>
+
+ #ifdef _MSC_VER
+ # pragma warning(pop)
+

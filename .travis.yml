@@ -22,10 +22,11 @@ script:
             travis_fold docker-apt-update apt -q update
 
             DEBIAN_FRONTEND=noninteractive travis_fold docker-apt-install \
-                apt -qqy install --no-install-recommends cmake g++-mingw-w64-x86-64 make
+                apt -qqy install --no-install-recommends cmake g++-mingw-w64-x86-64 make patch
 
             travis_fold docker-cmake cmake \
                 -DCMAKE_SYSTEM_NAME=Windows \
+                -DCMAKE_C_COMPILER=x86_64-w64-mingw32-g++ \
                 -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
                 -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
                 -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
