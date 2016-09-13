@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.6)
 
-project("Windows Disk ACL Editor" LANGUAGES C CXX RC)
+project("Windows Disk ACL Editor" LANGUAGES C CXX)
 
 add_executable(wdae WIN32 disks.cpp explain.cpp main_window.cpp wdae.cpp wdae-rc.rc)
 
