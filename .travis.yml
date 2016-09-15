@@ -38,3 +38,8 @@ script:
 
             travis_fold docker-make make -k VERBOSE=1
         '
+
+after_failure:
+    - sha256sum build/vboxsdk/extra/iprt/win/windows.h
+    - hd build/vboxsdk/extra/iprt/win/windows.h
+    - find build/vboxsdk/extra -type f -ls
